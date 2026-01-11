@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Routine Fall Final</title>
+
+  <style>
+    :root {
+      --bg: #f4f6f8;
+      --card: #ffffff;
+      --text: #111827;
+      --primary: #1e40af;
+      --muted: #6b7280;
+    }
+
+    body.dark {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --text: #e5e7eb;
+      --primary: #60a5fa;
+      --muted: #9ca3af;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 18px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .toggle {
+      position: absolute;
+      right: 15px;
+      top: 15px;
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 6px 10px;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: 20px auto;
+      padding: 15px;
+    }
+
+    /* 🔥 CARD ANIMATION */
+    .card {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 15px;
+      margin-bottom: 15px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+      animation: slideUp 0.6s ease forwards;
+      transform: translateY(20px);
+      opacity: 0;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    /* 📱 Touch feedback */
+    .card:active {
+      transform: scale(0.97);
+    }
+
+    /* ⭐ Highlight nearest exam */
+    .card.nearest {
+      animation: pulse 1.8s infinite;
+      border: 2px solid var(--primary);
+    }
+
+    .course {
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .meta {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .countdown {
+      margin-top: 10px;
+      font-size: 15px;
+      font-weight: bold;
+      color: var(--primary);
+    }
+
+    footer {
+      text-align: center;
+      padding: 15px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* Animations */
+    @keyframes slideUp {
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(30,64,175,0.4); }
+      70% { box-shadow: 0 0 0 12px rgba(30,64,175,0); }
+      100% { box-shadow: 0 0 0 0 rgba(30,64,175,0); }
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>Routine Fall Final</h1>
+  <p>AIUB Final Exam Schedule</p>
+  <button class="toggle" onclick="toggleDark()">🌙</button>
+</header>
+
+<div class="container">
+
+  <div class="card" data-date="2026-01-11T15:00:00">
+    <div class="course">Computational Statistics and Probability (MUNMUN)</div>
+    <div class="meta">Jan 11, 2026 • Sunday • 3:00–5:00 PM</div>
+    <div class="countdown"></div>
+  </div>
+
+  <div class="card" data-date="2026-01-12T15:00:00">
+    <div class="course">Object Oriented Analysis and Design</div>
+    <div class="meta">Jan 12, 2026 • Monday • 3:00–5:00 PM</div>
+    <div class="countdown"></div>
+  </div>
+
+  <div class="card" data-date="2026-01-14T12:00:00">
+    <div class="course">Numerical Methods for Science and Engineering</div>
+    <div class="meta">Jan 14, 2026 • Wednesday • 12:00–2:00 PM</div>
+    <div class="countdown"></div>
+  </div>
+
+  <div class="card" data-date="2026-01-15T12:00:00">
+    <div class="course">Data Structure</div>
+    <div class="meta">Jan 15, 2026 • Thursday • 12:00–2:00 PM</div>
+    <div class="countdown"></div>
+  </div>
+
+  <div class="card" data-date="2026-01-15T15:00:00">
+    <div class="course">Business Communication (FST/FE)</div>
+    <div class="meta">Jan 15, 2026 • Thursday • 3:00–5:00 PM</div>
+    <div class="countdown"></div>
+  </div>
+
+</div>
+
+<footer>
+  © 2026 Routine Fall Final
+</footer>
+
+<script>
+  function toggleDark() {
+    document.body.classList.toggle('dark');
+  }
+
+  const alerted = new Set();
+
+  function updateCountdowns() {
+    const now = new Date();
+    let nearestCard = null;
+    let nearestDiff = Infinity;
+
+    document.querySelectorAll('.card').forEach(card => {
+      const exam = new Date(card.dataset.date);
+      const diff = exam - now;
+      const el = card.querySelector('.countdown');
+      const course = card.querySelector('.course').textContent;
+
+      card.classList.remove('nearest');
+
+      if (diff <= 0) {
+        el.textContent = '✅ Exam started / completed';
+        return;
+      }
+
+      if (diff < nearestDiff) {
+        nearestDiff = diff;
+        nearestCard = card;
+      }
+
+      if (diff <= 3600000 && diff > 3540000 && !alerted.has(exam)) {
+        alert(`🔔 Reminder: ${course} exam starts in 1 hour!`);
+        alerted.add(exam);
+      }
+
+      const d = Math.floor(diff / 86400000);
+      const h = Math.floor((diff / 3600000) % 24);
+      const m = Math.floor((diff / 60000) % 60);
+      const s = Math.floor((diff / 1000) % 60);
+
+      el.textContent = `⏳ ${d}d ${h}h ${m}m ${s}s left`;
+    });
+
+    if (nearestCard) nearestCard.classList.add('nearest');
+  }
+
+  updateCountdowns();
+  setInterval(updateCountdowns, 1000);
+</script>
+
+</body>
+</html>
