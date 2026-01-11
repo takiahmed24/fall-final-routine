@@ -12,7 +12,6 @@
       --text: #111827;
       --primary: #1e40af;
       --muted: #6b7280;
-      --completed: #10b981;
     }
 
     body.dark {
@@ -21,7 +20,6 @@
       --text: #e5e7eb;
       --primary: #60a5fa;
       --muted: #9ca3af;
-      --completed: #34d399;
     }
 
     body {
@@ -39,7 +37,6 @@
       text-align: center;
       position: sticky;
       top: 0;
-      z-index: 10;
     }
 
     .toggle {
@@ -66,36 +63,6 @@
       padding: 15px;
       margin-bottom: 15px;
       box-shadow: 0 6px 16px rgba(0,0,0,0.15);
-      transform: translateY(20px);
-      opacity: 0;
-      animation: slideUp 0.6s ease forwards;
-      transition: transform 0.2s ease, opacity 0.2s ease;
-      position: relative;
-    }
-
-    .card:active {
-      transform: scale(0.97);
-    }
-
-    .card.nearest {
-      border: 2px solid var(--primary);
-      animation: pulse 1.8s infinite;
-    }
-
-    .card.completed {
-      opacity: 0.6;
-    }
-
-    .badge {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      background: var(--completed);
-      color: white;
-      font-size: 12px;
-      padding: 4px 8px;
-      border-radius: 12px;
-      font-weight: 600;
     }
 
     .course {
@@ -121,19 +88,6 @@
       font-size: 13px;
       color: var(--muted);
     }
-
-    @keyframes slideUp {
-      to {
-        transform: translateY(0);
-        opacity: 1;
-      }
-    }
-
-    @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(30,64,175,0.4); }
-      70% { box-shadow: 0 0 0 12px rgba(30,64,175,0); }
-      100% { box-shadow: 0 0 0 0 rgba(30,64,175,0); }
-    }
   </style>
 </head>
 
@@ -145,8 +99,9 @@
   <button class="toggle" onclick="toggleDark()">🌙</button>
 </header>
 
-<div class="container" id="examContainer">
+<div class="container">
 
+  <!-- ✅ ADDED COURSE -->
   <div class="card" data-date="2026-01-11T15:00:00">
     <div class="course">Computational Statistics and Probability (MUNMUN)</div>
     <div class="meta">Jan 11, 2026 • Sunday • 3:00–5:00 PM</div>
@@ -190,52 +145,24 @@
 
   function updateCountdowns() {
     const now = new Date();
-    const container = document.getElementById('examContainer');
-    const cards = Array.from(container.children);
 
-    // 🔁 Sort: upcoming first, completed last
-    cards.sort((a, b) => {
-      return new Date(a.dataset.date) - new Date(b.dataset.date);
-    });
-
-    cards.forEach(card => container.appendChild(card));
-
-    let nearestCard = null;
-    let nearestDiff = Infinity;
-
-    cards.forEach(card => {
+    document.querySelectorAll('.card').forEach(card => {
       const exam = new Date(card.dataset.date);
       const diff = exam - now;
       const el = card.querySelector('.countdown');
 
-      card.classList.remove('nearest', 'completed');
-      card.querySelector('.badge')?.remove();
-
       if (diff <= 0) {
-        card.classList.add('completed');
         el.textContent = 'Exam completed';
-
-        const badge = document.createElement('div');
-        badge.className = 'badge';
-        badge.textContent = 'Completed';
-        card.appendChild(badge);
         return;
       }
 
-      if (diff < nearestDiff) {
-        nearestDiff = diff;
-        nearestCard = card;
-      }
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const mins = Math.floor((diff / (1000 * 60)) % 60);
+      const secs = Math.floor((diff / 1000) % 60);
 
-      const d = Math.floor(diff / 86400000);
-      const h = Math.floor((diff / 3600000) % 24);
-      const m = Math.floor((diff / 60000) % 60);
-      const s = Math.floor((diff / 1000) % 60);
-
-      el.textContent = `⏳ ${d}d ${h}h ${m}m ${s}s left`;
+      el.textContent = `⏳ ${days}d ${hours}h ${mins}m ${secs}s left`;
     });
-
-    if (nearestCard) nearestCard.classList.add('nearest');
   }
 
   updateCountdowns();
