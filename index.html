@@ -12,6 +12,7 @@
       --text: #111827;
       --primary: #1e40af;
       --muted: #6b7280;
+      --completed: #10b981;
     }
 
     body.dark {
@@ -20,6 +21,7 @@
       --text: #e5e7eb;
       --primary: #60a5fa;
       --muted: #9ca3af;
+      --completed: #34d399;
     }
 
     body {
@@ -58,28 +60,42 @@
       padding: 15px;
     }
 
-    /* 🔥 CARD ANIMATION */
     .card {
       background: var(--card);
       border-radius: 14px;
       padding: 15px;
       margin-bottom: 15px;
       box-shadow: 0 6px 16px rgba(0,0,0,0.15);
-      animation: slideUp 0.6s ease forwards;
       transform: translateY(20px);
       opacity: 0;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      animation: slideUp 0.6s ease forwards;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+      position: relative;
     }
 
-    /* 📱 Touch feedback */
     .card:active {
       transform: scale(0.97);
     }
 
-    /* ⭐ Highlight nearest exam */
     .card.nearest {
-      animation: pulse 1.8s infinite;
       border: 2px solid var(--primary);
+      animation: pulse 1.8s infinite;
+    }
+
+    .card.completed {
+      opacity: 0.6;
+    }
+
+    .badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: var(--completed);
+      color: white;
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-weight: 600;
     }
 
     .course {
@@ -106,7 +122,6 @@
       color: var(--muted);
     }
 
-    /* Animations */
     @keyframes slideUp {
       to {
         transform: translateY(0);
@@ -130,7 +145,7 @@
   <button class="toggle" onclick="toggleDark()">🌙</button>
 </header>
 
-<div class="container">
+<div class="container" id="examContainer">
 
   <div class="card" data-date="2026-01-11T15:00:00">
     <div class="course">Computational Statistics and Probability (MUNMUN)</div>
@@ -173,34 +188,43 @@
     document.body.classList.toggle('dark');
   }
 
-  const alerted = new Set();
-
   function updateCountdowns() {
     const now = new Date();
+    const container = document.getElementById('examContainer');
+    const cards = Array.from(container.children);
+
+    // 🔁 Sort: upcoming first, completed last
+    cards.sort((a, b) => {
+      return new Date(a.dataset.date) - new Date(b.dataset.date);
+    });
+
+    cards.forEach(card => container.appendChild(card));
+
     let nearestCard = null;
     let nearestDiff = Infinity;
 
-    document.querySelectorAll('.card').forEach(card => {
+    cards.forEach(card => {
       const exam = new Date(card.dataset.date);
       const diff = exam - now;
       const el = card.querySelector('.countdown');
-      const course = card.querySelector('.course').textContent;
 
-      card.classList.remove('nearest');
+      card.classList.remove('nearest', 'completed');
+      card.querySelector('.badge')?.remove();
 
       if (diff <= 0) {
-        el.textContent = '✅ Exam started / completed';
+        card.classList.add('completed');
+        el.textContent = 'Exam completed';
+
+        const badge = document.createElement('div');
+        badge.className = 'badge';
+        badge.textContent = 'Completed';
+        card.appendChild(badge);
         return;
       }
 
       if (diff < nearestDiff) {
         nearestDiff = diff;
         nearestCard = card;
-      }
-
-      if (diff <= 3600000 && diff > 3540000 && !alerted.has(exam)) {
-        alert(`🔔 Reminder: ${course} exam starts in 1 hour!`);
-        alerted.add(exam);
       }
 
       const d = Math.floor(diff / 86400000);
